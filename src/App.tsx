@@ -1,74 +1,114 @@
-import { useState, DragEvent } from "react"
-import { ICard } from "./models/card"
+import { DragEvent, useState } from "react"
 import "./App.css"
+import { IBoard, ITask } from "./models/board"
 
 function App() {
-  const [cards, setCards] = useState<ICard[]>([
-    { id: 1, order: 3, text: "card-3" },
-    { id: 2, order: 1, text: "card-1" },
-    { id: 3, order: 2, text: "card-2" },
-    { id: 4, order: 4, text: "card-4" },
+  const [boards, setBoards] = useState<IBoard[]>([
+    {
+      id: 1,
+      title: "To do",
+      tasks: [
+        { id: 1, title: "Read a book" },
+        { id: 2, title: "Watch TV" },
+      ],
+    },
+    {
+      id: 2,
+      title: "To review",
+      tasks: [
+        { id: 3, title: "Cook a dinner" },
+        { id: 4, title: "Walk with Dina" },
+      ],
+    },
+    {
+      id: 3,
+      title: "Done",
+      tasks: [
+        { id: 5, title: "Complete work tasks" },
+        { id: 6, title: "Make the bed" },
+      ],
+    },
   ])
 
-  const [currentCard, setCurrentCard] = useState<ICard | null>(null)
+  const [currentBoard, setCurrentBoard] = useState<IBoard | null>(null)
+  const [currentTask, setCurrentTask] = useState<ITask | null>(null)
 
-  const dragStartHandler = (card: ICard) => {
-    setCurrentCard(card)
-  }
-
-  const dragEndHandler = () => {
-    setCurrentCard(null)
-  }
-
-  const dragOverHandler = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
+  const addShadow = (e: DragEvent<HTMLParagraphElement>) => {
     const target = e.target as HTMLElement
-    target.style.backgroundColor = "lightgray"
+    target.style.boxShadow = "0 4px 3px gray"
   }
 
-  const dragLeaveHandler = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
+  const removeShadow = (e: DragEvent<HTMLParagraphElement>) => {
     const target = e.target as HTMLElement
-    target.style.backgroundColor = "#eee"
+    target.style.boxShadow = "none"
   }
 
-  const dropHandler = (e: DragEvent<HTMLDivElement>, card: ICard) => {
+  const dragStartHandler = (
+    e: DragEvent<HTMLParagraphElement>,
+    board: IBoard,
+    task: ITask
+  ) => {
+    setCurrentBoard(board)
+    setCurrentTask(task)
+  }
+
+  const dragEndHandler = (e: DragEvent<HTMLParagraphElement>) => {
+    removeShadow(e)
+  }
+
+  const dragOverHandler = (e: DragEvent<HTMLParagraphElement>) => {
     e.preventDefault()
-    const target = e.target as HTMLElement
-    target.style.backgroundColor = "#eee"
-    setCards(
-      cards.map((c) => {
-        if (c.id === card.id && currentCard)
-          return { ...c, order: currentCard.order }
-        if (c.id === currentCard?.id) return { ...c, order: card.order }
-        return c
-      })
-    )
+    addShadow(e)
   }
 
-  const sortCards = (a: ICard, b: ICard) => {
-    console.log("sorted")
-    if (a.order > b.order) {
-      return 1
-    } else {
-      return -1
-    }
+  const dragLeaveHandler = (e: DragEvent<HTMLParagraphElement>) => {
+    removeShadow(e)
+  }
+
+  const dropHandler = (
+    e: DragEvent<HTMLParagraphElement>,
+    board: IBoard,
+    task: ITask
+  ) => {
+    e.preventDefault()
+    removeShadow(e)
+
+    setBoards([
+      ...boards,
+      {
+        ...boards[currentBoard!.id],
+        tasks: boards[currentBoard!.id].tasks.filter((t) => {
+          console.log("here")
+          return t.id !== currentTask!.id
+        }),
+      },
+    ])
+
+    setCurrentBoard(null)
+    setCurrentTask(null)
   }
 
   return (
     <div className="app">
-      {cards.sort(sortCards).map((card) => (
-        <div
-          key={card.id}
-          className="card"
-          draggable
-          onDragStart={() => dragStartHandler(card)}
-          onDragEnd={dragEndHandler}
-          onDragOver={(e) => dragOverHandler(e)}
-          onDragLeave={(e) => dragLeaveHandler(e)}
-          onDrop={(e) => dropHandler(e, card)}
-        >
-          {card.text}
+      {boards.map((board) => (
+        <div className="board" key={board.id}>
+          <h2 className="board__title">
+            {board.id}. {board.title}
+          </h2>
+          {board.tasks.map((task) => (
+            <p
+              key={task.id}
+              className="task"
+              draggable
+              onDragStart={(e) => dragStartHandler(e, board, task)}
+              onDragEnd={(e) => dragEndHandler(e)}
+              onDragOver={(e) => dragOverHandler(e)}
+              onDragLeave={(e) => dragLeaveHandler(e)}
+              onDrop={(e) => dropHandler(e, board, task)}
+            >
+              {task.id}. {task.title}
+            </p>
+          ))}
         </div>
       ))}
     </div>

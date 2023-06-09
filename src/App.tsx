@@ -30,6 +30,8 @@ function App() {
     },
   ])
 
+  console.log("render")
+
   const [currentBoard, setCurrentBoard] = useState<IBoard | null>(null)
   const [currentTask, setCurrentTask] = useState<ITask | null>(null)
 
@@ -62,6 +64,7 @@ function App() {
   }
 
   const dragLeaveHandler = (e: DragEvent<HTMLParagraphElement>) => {
+    // e.preventDefault()
     removeShadow(e)
   }
 
@@ -73,25 +76,54 @@ function App() {
     e.preventDefault()
     removeShadow(e)
 
-    setBoards([
-      ...boards,
-      {
-        ...boards[currentBoard!.id],
-        tasks: boards[currentBoard!.id].tasks.filter((t) => {
-          console.log("here")
-          return t.id !== currentTask!.id
-        }),
-      },
-    ])
+    const currentIndex = currentBoard!.tasks.indexOf(currentTask!)
+    currentBoard!.tasks.splice(currentIndex, 1)
+
+    const pushedIndex = board.tasks.indexOf(task)
+    board.tasks.splice(pushedIndex, 0, currentTask!)
+
+    // setBoards(
+    //   boards.map((b) => {
+    //     if (b.id === board.id) {
+    //       // return board
+    //     }
+    //     if (b.id === currentBoard!.id) {
+    //       // return currentBoard!
+    //     }
+    //     return b
+    //   })
+    // ) //cuz render will be anyway
 
     setCurrentBoard(null)
     setCurrentTask(null)
   }
 
+  const boardDragOverHandler = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
+  const boardDropHanler = (e: DragEvent<HTMLDivElement>, board: IBoard) => {
+    e.preventDefault()
+
+    if (!board.tasks.length) {
+      board.tasks.push(currentTask!)
+      const currentIndex = currentBoard!.tasks.indexOf(currentTask!)
+      currentBoard!.tasks.splice(currentIndex, 1)
+
+      setCurrentBoard(null)
+      setCurrentTask(null)
+    }
+  }
+
   return (
     <div className="app">
       {boards.map((board) => (
-        <div className="board" key={board.id}>
+        <div
+          className="board"
+          key={board.id}
+          onDragOver={(e) => boardDragOverHandler(e)}
+          onDrop={(e) => boardDropHanler(e, board)}
+        >
           <h2 className="board__title">
             {board.id}. {board.title}
           </h2>

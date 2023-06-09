@@ -1,4 +1,4 @@
-import { useState, MouseEvent } from "react"
+import { useState, DragEvent } from "react"
 import { ICard } from "./models/card"
 import "./App.css"
 
@@ -12,38 +12,58 @@ function App() {
 
   const [currentCard, setCurrentCard] = useState<ICard | null>(null)
 
-  const dragStartHandler = (e: MouseEvent<HTMLDivElement>, card: ICard) => {
-    console.log("drag", card)
+  const dragStartHandler = (card: ICard) => {
     setCurrentCard(card)
   }
 
-  const dragEndHandler = (e: MouseEvent<HTMLDivElement>) => {
+  const dragEndHandler = () => {
     setCurrentCard(null)
   }
 
-  const dragOverHandler = (e: MouseEvent<HTMLDivElement>) => {
-    // e.target.style.background("lightgray")
+  const dragOverHandler = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const target = e.target as HTMLElement
+    target.style.backgroundColor = "lightgray"
   }
 
-  const dragLeaveHandler = (e: MouseEvent<HTMLDivElement>) => {
+  const dragLeaveHandler = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    const target = e.target as HTMLElement
+    target.style.backgroundColor = "#eee"
   }
 
-  const dropHandler = (e: MouseEvent<HTMLDivElement>, card: ICard) => {
+  const dropHandler = (e: DragEvent<HTMLDivElement>, card: ICard) => {
     e.preventDefault()
-    console.log("drop", card)
-    setCards([...cards])
+    const target = e.target as HTMLElement
+    target.style.backgroundColor = "#eee"
+    setCards(
+      cards.map((c) => {
+        if (c.id === card.id && currentCard)
+          return { ...c, order: currentCard.order }
+        if (c.id === currentCard?.id) return { ...c, order: card.order }
+        return c
+      })
+    )
+  }
+
+  const sortCards = (a: ICard, b: ICard) => {
+    console.log("sorted")
+    if (a.order > b.order) {
+      return 1
+    } else {
+      return -1
+    }
   }
 
   return (
     <div className="app">
-      {cards.map((card) => (
+      {cards.sort(sortCards).map((card) => (
         <div
           key={card.id}
           className="card"
           draggable
-          onDragStart={(e) => dragStartHandler(e, card)}
-          onDragEnd={(e) => dragEndHandler(e)}
+          onDragStart={() => dragStartHandler(card)}
+          onDragEnd={dragEndHandler}
           onDragOver={(e) => dragOverHandler(e)}
           onDragLeave={(e) => dragLeaveHandler(e)}
           onDrop={(e) => dropHandler(e, card)}

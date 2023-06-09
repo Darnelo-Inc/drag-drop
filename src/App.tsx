@@ -30,8 +30,6 @@ function App() {
     },
   ])
 
-  console.log("render")
-
   const [currentBoard, setCurrentBoard] = useState<IBoard | null>(null)
   const [currentTask, setCurrentTask] = useState<ITask | null>(null)
 
@@ -45,11 +43,7 @@ function App() {
     target.style.boxShadow = "none"
   }
 
-  const dragStartHandler = (
-    e: DragEvent<HTMLParagraphElement>,
-    board: IBoard,
-    task: ITask
-  ) => {
+  const dragStartHandler = (board: IBoard, task: ITask) => {
     setCurrentBoard(board)
     setCurrentTask(task)
   }
@@ -64,7 +58,6 @@ function App() {
   }
 
   const dragLeaveHandler = (e: DragEvent<HTMLParagraphElement>) => {
-    // e.preventDefault()
     removeShadow(e)
   }
 
@@ -132,7 +125,7 @@ function App() {
               key={task.id}
               className="task"
               draggable
-              onDragStart={(e) => dragStartHandler(e, board, task)}
+              onDragStart={() => dragStartHandler(board, task)}
               onDragEnd={(e) => dragEndHandler(e)}
               onDragOver={(e) => dragOverHandler(e)}
               onDragLeave={(e) => dragLeaveHandler(e)}

@@ -1,56 +1,47 @@
-import { useState, MouseEvent } from "react"
-import { ICard } from "./models/card"
+import { useState, DragEvent } from "react"
 import "./App.css"
 
 function App() {
-  const [cards, setCards] = useState<ICard[]>([
-    { id: 1, order: 3, text: "card-3" },
-    { id: 2, order: 1, text: "card-1" },
-    { id: 3, order: 2, text: "card-2" },
-    { id: 4, order: 4, text: "card-4" },
-  ])
+  const [drag, setDrag] = useState<boolean>(false)
 
-  const [currentCard, setCurrentCard] = useState<ICard | null>(null)
-
-  const dragStartHandler = (e: MouseEvent<HTMLDivElement>, card: ICard) => {
-    console.log("drag", card)
-    setCurrentCard(card)
-  }
-
-  const dragEndHandler = (e: MouseEvent<HTMLDivElement>) => {
-    setCurrentCard(null)
-  }
-
-  const dragOverHandler = (e: MouseEvent<HTMLDivElement>) => {
-    // e.target.style.background("lightgray")
-  }
-
-  const dragLeaveHandler = (e: MouseEvent<HTMLDivElement>) => {
+  const dragOverHandler = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    setDrag(true)
   }
 
-  const dropHandler = (e: MouseEvent<HTMLDivElement>, card: ICard) => {
+  const dragLeaveHandler = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    console.log("drop", card)
-    setCards([...cards])
+    setDrag(false)
+  }
+
+  const dropHandler = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setDrag(false)
+
+    const data = e.dataTransfer.files
+    console.log(data)
+
+    const formData = new FormData()
+    formData.append("image", data[0])
+    formData.append("author", "darnelo")
+
+    // formData can be send
   }
 
   return (
     <div className="app">
-      {cards.map((card) => (
+      {drag ? (
         <div
-          key={card.id}
-          className="card"
-          draggable
-          onDragStart={(e) => dragStartHandler(e, card)}
-          onDragEnd={(e) => dragEndHandler(e)}
+          className="drop-area"
+          onDrop={(e) => dropHandler(e)}
           onDragOver={(e) => dragOverHandler(e)}
           onDragLeave={(e) => dragLeaveHandler(e)}
-          onDrop={(e) => dropHandler(e, card)}
         >
-          {card.text}
+          Drop file for upload
         </div>
-      ))}
+      ) : (
+        <div onDragOver={(e) => dragOverHandler(e)}>Move file for upload</div>
+      )}
     </div>
   )
 }

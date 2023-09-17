@@ -7,5 +7,5 @@
 [File uploading](https://github.com/Darnelo-Inc/drag-drop/tree/file-drop)
 
 React /
-Typescript /
+TypeScript /
 CSS
